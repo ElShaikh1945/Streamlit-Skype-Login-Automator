@@ -92,7 +92,7 @@ class SkypeLogin:
 def login_thread(skype_login):
     skype_login.login()
 
-st.title("Skype Login Automation")
+st.title("Skype Login Automation using Tor")
 
 uploaded_file = st.file_uploader("Upload credentials file (format: email:password)", type="txt")
 
