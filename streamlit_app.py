@@ -28,7 +28,7 @@ class SkypeLogin:
         try:
             WebDriverWait(self.driver, 30).until(EC.element_to_be_clickable((By.ID, "i0116"))).send_keys(self.email)
         except TimeoutException:
-            st.write("TimeoutException occurred. Retrying...")
+            st.error("TimeoutException occurred. Retrying...")  # Error message in Streamlit UI
             self.login()
         self.driver.find_element(By.ID, "idSIButton9").click()
         try:
@@ -39,18 +39,18 @@ class SkypeLogin:
             try:
                 self.driver.find_element(By.XPATH, "//button[contains(text(), 'Yes')]").click()  # Click the "Yes" button
             except:
-                st.write(f"Could not find 'Yes' button for account {self.email}. Closing window.")
+                st.error(f"Could not find 'Yes' button for account {self.email}. Closing window.")
                 self.driver.quit()  # Close the window
     
             try:
                 verify_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Verify your account')]")))
-                st.write(f"Account {self.email} needs verification. Closing window.")
+                st.warning(f"Account {self.email} needs verification. Closing window.")
                 self.driver.quit()  # Close the window
                 return
             except:
                 pass
         except TimeoutException:
-            st.write("TimeoutException occurred. Retrying...")
+            st.error("TimeoutException occurred. Retrying...")
             self.login()
 
 skype_logins = []
@@ -59,18 +59,24 @@ def login_thread(skype_login):
     skype_login.login()
     skype_logins.append(skype_login)
 
-def start_login_process(file):
-    credentials = extract_credentials(file)
+def start_login_process(credentials):
     for email, password in credentials:
         st.write(f"Logging in to Skype with {email}...")
         skype_login = SkypeLogin(email, password)
+        # Launch the login in a new thread
         threading.Thread(target=login_thread, args=(skype_login,)).start()
 
 def main():
     st.title("Skype Login Automation")
-    file = st.file_uploader("Upload a file with credentials", type=["txt"])
-    if file is not None:
-        start_login_process(file)
+    uploaded_file = st.file_uploader("Upload a file with credentials", type=["txt"])
+    
+    if uploaded_file is not None:
+        # Extract credentials from the file
+        credentials = extract_credentials(uploaded_file)
+        
+        # Start the login process
+        if st.button("Start Login Process"):
+            start_login_process(credentials)
 
 if __name__ == "__main__":
     main()
